@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.secret_key = config.get('flask', 'secret_key') # set the secret key
 
 # define the default users account and passwords
-users = {'Eddie': {'password': 'handsome'}}
+users = {'Yudong': {'password': 'handsome'}}
 
 login_manager = LoginManager()
 login_manager.init_app(app)
