@@ -33,24 +33,24 @@
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       <li class = "nav-item">
-	      <a class="nav-link" href="/">Home</span></a> 
+	      <a class="nav-link" href="/">Home</a> 
       </li>
 
       <li class="nav-item">
-        <a class="nav-link" href="/start">Post</span></a>
+        <a class="nav-link" href="/start">Post</a>
        </li>
 
       <li class="nav-item">
-	      <a class="nav-link" href="#">Find</span></a>
+	      <a class="nav-link" href="#">Find</a>
       </li>
 
       {% if current_user.is_authenticated %}
       <li class="nav-item">
-        <a class="nav-link" href="#">check my post</a>
+        <a class="nav-link" href="#">Check my post</a>
       </li>
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          check my task
+          Check my task
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
           <a class="dropdown-item" href="#">first</a>
@@ -63,15 +63,15 @@
     </ul>
   <ul class="navbar-nav ml-auto">
     <li class="nav-item">
-      <a class="nav-link" href="/signup">sign up</a>
+      <a class="nav-link" href="/signup">Sign up</a>
     </li>
   </ul>
   <ul class="navbar-nav ml-auto">
     <li class="nav-item">
       {% if current_user.is_authenticated %}
-      <a class="nav-link" href="/logout">logout</a>
+      <a class="nav-link" href="/logout">Log out</a>
       {% else %}
-      <a class="nav-link" href="/login">login</a>
+      <a class="nav-link" href="/login">Log in</a>
     {% endif %}
     </li>
   </ul>
