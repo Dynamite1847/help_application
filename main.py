@@ -18,8 +18,6 @@ login_manager.session_protection = "strong"
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please Login'
 
-class User(UserMixin):
-    pass
 
 @login_manager.user_loader
 def user_loader(username):
