@@ -22,25 +22,25 @@ class User(UserMixin):
     pass
 
 @login_manager.user_loader
-def user_loader(user_id):
-    if user_id not in users:
+def user_loader(username):
+    if username not in users:
         return
 
     user = User()
-    user.id = user_id
+    user.id = username
     return user
 
 
 @login_manager.request_loader
 def request_loader(request):
-    user_id = request.form.get('user_id')
-    if user_id not in users:
+    username = request.form.get('username')
+    if username not in users:
         return
 
     user = User()
-    user.id = user_id
+    user.id = username
 
-    user.is_authenticated = request.form['password'] == users[user_id]['password']
+    user.is_authenticated = request.form['password'] == users[username]['password']
 
     return user
 
@@ -54,17 +54,17 @@ def login():
     if request.method == 'GET':
         return render_template("login.html")
 
-    user_id = request.form['user_id']
+    username = request.form['username']
 
-    if (user_id in users) and (request.form['password'] == users[user_id]['password']):
+    if (username in users) and (request.form['password'] == users[username]['password']):
         user = User()
-        user.id = user_id
+        user.id = username
         login_user(user)
-        flash(f'{user_id}！Welcome Login！')
+        flash(f'{username}！Welcome Login！')
         return render_template('home.html')
         # return redirect(url_for('from_start'))
 
-    flash('Login Failed, Please check your account and password!')
+    flash('Invalid login, Please check your account and password!')
     return render_template('login.html')
 
 @app.route("/signup")
@@ -73,9 +73,9 @@ def signup():
 
 @app.route('/logout')
 def logout():
-    user_id = current_user.get_id()
+    username = current_user.get_id()
     logout_user()
-    flash(f'{user_id}！See you again')
+    flash(f'{username}！See you again!')
     return render_template('login.html')
 
 @app.route("/from_start")
@@ -83,9 +83,6 @@ def logout():
 def from_start():
     return render_template("from_start.html")
 
-# @app.route('/login')
-# def login():
-#     return render_template("login.html")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
