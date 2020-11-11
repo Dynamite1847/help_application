@@ -42,10 +42,6 @@ def request_loader(request):
 
     return user
 
-@app.route("/")
-def home():
-    return render_template("home.html")
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -81,6 +77,10 @@ def logout():
 def from_start():
     return render_template("from_start.html")
 
+
+@app.route("/")
+def home():
+    return render_template("home.html")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
