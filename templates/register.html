@@ -1,6 +1,6 @@
 {% extends "template.html" %}
 
-{% block title %}Log in{% endblock %}
+{% block title %}login{% endblock %}
 
 {% block flash %}
 <div class = 'alert alert-warning'>
@@ -27,27 +27,27 @@
 <div class="row">
 <div class="col">
 
-  <h1>Please Log in</h1>
+  <h1>Sigh Up</h1>
 
-<form method="post" action="/login">
+<form method="post" action="/register">
 
   <div class="form-group row">
-    <label for="username" class="col-2 offset-1 col-form-label">Username:</label>
+    <label for="user_id" class="col-2 offset-1 col-form-label">Username:</label>
     <div class="col-3">
-      <input type="text" class="form-control" id="username" name="username" placeholder="Please input your username">
-      <small class="form-text">Yudong</small>
+      <input type="text" class="form-control" id="username" name="username" placeholder="username">
+      <small class="form-text">Please input your Username:</small>
     </div>
   </div>
   <div class="form-group row">
     <label for="password" class="col-2 offset-1 col-form-label">Password:</label>
     <div class="col-3">
-      <input type="password" class="form-control" id="password" name="password" placeholder="Please input your password">
-      <small class="form-text">handsome</small>
+      <input type="password" class="form-control" id="password" name="password" placeholder="password">
+      <small class="form-text">Please input your password:</small>
     </div>
   </div>
   <div class="form-group row">
     <div class="col-2 offset-3">
-      <button type="submit" class="btn btn-dirty-purple">Log in</button>
+      <button type="submit" class="btn btn-dirty-purple">Signup</button>
     </div>
   </div>
 </form>
