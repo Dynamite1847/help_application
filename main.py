@@ -54,7 +54,7 @@ def request_loader(request):
     if username is None:
         return redirect('/login')
     user = User()
-    client = MongoClient('localhost', 27017)
+    client = MongoClient('35.183.26.186', 27017)
     db = client.users
     log_user = db.users.find_one({"username": username})
     user.is_authenticated = bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
@@ -67,7 +67,7 @@ def login():
     if request.method == 'GET':
         return render_template("login.html")
     username = request.form['username']
-    client = MongoClient('localhost', 27017)
+    client = MongoClient('35.183.26.186', 27017)
     db = client.users
     log_user = db.users.find_one({"username": username})
     if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
@@ -86,7 +86,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('35.183.26.186', 27017)
         db = client.users
         existing_user = db.users.find_one({'username': request.form['username']})
         if existing_user is None:
