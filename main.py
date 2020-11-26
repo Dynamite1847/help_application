@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, render_template, flash, url_for, redirect, jsonify
+from flask import Flask, request, abort, render_template, flash, url_for, redirect
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import bcrypt
 import configparser
@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.secret_key = config.get('flask', 'secret_key')  # set the secret key
 
 # define the default users account and passwords
-users = {'Yudong': {'password': 'handsome'}}
+
 
 # This object is used to hold the settings used for logging in and initiate it.
 login_manager = LoginManager()
@@ -42,21 +42,23 @@ class User(UserMixin):
 # or None if the user does not exist.
 @login_manager.user_loader
 def user_loader(username):
-    if username not in users:
-        return None
+    if username is None:
+        return redirect('/login')
     user = User()
-    user.id = username
     return user
 
 
 @login_manager.request_loader
 def request_loader(request):
     username = request.form.get('username')
-    if username not in users:
-        return None
+    if username is None:
+        return redirect('/login')
     user = User()
-    user.id = username
-    user.is_authenticated = request.form['password'] == users[username]['password']
+    client = MongoClient('localhost', 27017)
+    db = client.users
+    log_user = db.users.find_one({"username": username})
+    user.is_authenticated = bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
+        log_user['password']
     return user
 
 
@@ -68,7 +70,8 @@ def login():
     client = MongoClient('localhost', 27017)
     db = client.users
     log_user = db.users.find_one({"username": username})
-    if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == log_user['password']:
+    if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
+            log_user['password']:
         user = User()
         user.id = username
         login_user(user)
@@ -108,7 +111,7 @@ def signup():
 
 @app.route('/logout')
 def logout():
-    username = current_user.get_id()
+
     logout_user()
     flash('See you again!')
     return render_template('login.html')
