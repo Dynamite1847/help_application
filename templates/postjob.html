@@ -1,0 +1,45 @@
+{% extends "template.html" %}
+
+{% block title %}home{% endblock %}
+
+{% block main %}
+<div class="jumbotron">
+  <h1 class="display-4">Help&</h1>
+  <p class="lead"><strong>Welcome to Help&! </strong> </p>
+  <hr class="my-4">
+  <p>This is an application where you can find <strong>perfect taskers </strong>at your fingertips.</p>
+ 
+  {% if current_user.is_authenticated %}
+  <a class="btn-dirty-purple btn-lg" href="#" role="button">Post my needs</a>
+  {% else %}
+  <a class="btn-dirty-purple btn-lg" href="/login" role="button">Log in</a>
+  {% endif %}
+</div>
+
+
+<div class="container">
+	<!--<div class="row desc">-->
+  <div class="row">
+  <div class="col">
+    <h2><i class="fas fa-hand-holding-heart"></i>  Life</h2>
+    <p>Life related tasks, for example:</br>cleaning,assemble furniture, delivery etc.</p>
+    </div>
+  <div class="col">
+      <h2><i class="fas fa-drafting-compass"></i>  Graphic&Design</h2>
+      <p>Graphic design service, for example:</br>logo design, illstration, business card design etc.</p>
+    </div>
+  </div>
+  </br>
+  <div class="row">
+  <div class="col">
+      <h2><i class="fas fa-laptop"></i>  Digital Related</h2>
+    <p>Digital related tasks, for example:</br>change battery, install computer software,install computer hardware, change light bulbs,etc.</p>
+  </div>
+    <div class="col">
+	  <h2><i class="fas fa-language"></i>  Writing&translate</h2>
+	  <p>Writing and translation, for example:</br>write application, essay,article and translation</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
