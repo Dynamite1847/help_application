@@ -36,28 +36,16 @@
 	      <a class="nav-link" href="/">Home</a> 
       </li>
 
-      <li class="nav-item">
+      {% if current_user.is_authenticated %}
+          <li class="nav-item">
         <a class="nav-link" href="/postjob">Post</a>
        </li>
 
       <li class="nav-item">
 	      <a class="nav-link" href="#">Find</a>
       </li>
-
-      {% if current_user.is_authenticated %}
       <li class="nav-item">
         <a class="nav-link" href="#">Check my post</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Check my task
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="#">first</a>
-          <a class="dropdown-item" href="#">second</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">third</a>
-        </div>
       </li>
       {% endif %}
     </ul>
