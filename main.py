@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, render_template, flash, url_for, redirect
+from flask import Flask, request, abort, render_template, flash, url_for, redirect,session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import bcrypt
 import configparser
@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.secret_key = config.get('flask', 'secret_key')  # set the secret key
 
 # define the default users account and passwords
-
+USERS=[]
 
 # This object is used to hold the settings used for logging in and initiate it.
 login_manager = LoginManager()
@@ -23,43 +23,60 @@ login_manager.login_view = 'login'
 login_manager.login_message = 'Please Login!'
 
 
+def get_user(username):
+    for user in USERS:
+        if user.get("username") == username:
+            return user
+    return None
+
+
 class User(UserMixin):
-    def is_authenticated(self):
-        return True
-
-    def is_active(self):
-        return True
-
-    def is_anonymous(self):
-        return True
+    def __init__(self, user):
+        self.username = user.get("username")
+        self.id = user.get("uuid")
 
     def get_id(self):
-        pass
+        return self.id
+
+    def get_name(self):
+        return self.username
+
+    @staticmethod
+    def get(user_id):
+        if not user_id:
+            return None
+        for user in USERS:
+            if user.get('uuid') == user_id:
+                return User(user)
+        return None
+
+
 
 
 # This sets the callback for reloading a user from the session.
 # The function you set should take a user ID (a unicode) and return a user object,
 # or None if the user does not exist.
 @login_manager.user_loader
-def user_loader(username):
-    if username is None:
-        return redirect('/login')
-    user = User()
-    return user
+def load_user(user_id):
+    return User.get(user_id)
 
 
 @login_manager.request_loader
 def request_loader(request):
-    username = request.form.get('username')
-    if username is None:
-        return redirect('/login')
-    user = User()
-    client = MongoClient('35.183.26.186', 27017)
-    db = client.users
-    log_user = db.users.find_one({"username": username})
-    user.is_authenticated = bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
-        log_user['password']
-    return user
+    token = request.headers.get('Authorization')
+    if token is None:
+        token = request.args.get('token')
+    if token is not None:
+        username, id = token.split(":")  # naive token
+        user = {
+            "name": username,
+            "uuid": id
+        }
+        user_entry = User.get(username)
+        if (user_entry is not None):
+            user = User(user)
+            return user
+    return None
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -72,10 +89,13 @@ def login():
     log_user = db.users.find_one({"username": username})
     if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
             log_user['password']:
-        user = User()
-        user.id = username
+        user = {
+            "name": username,
+            "uuid": log_user['uuid']
+        }
+        USERS.append(user)
+        user = User(user)
         login_user(user)
-
         return render_template('home.html')
         # return redirect(url_for('from_start'))
     else:
@@ -104,23 +124,20 @@ def register():
         return render_template('register.html')
 
 
-@app.route("/signup")
-def signup():
-    return render_template("register.html")
-
-
 @app.route('/logout')
 def logout():
-
     logout_user()
     flash('See you again!')
     return render_template('login.html')
 
 
-@app.route("/from_start")
+@app.route("/postjob",methods=['GET','POST'])
 @login_required
-def from_start():
-    return render_template("from_start.html")
+def post_job():
+    pass
+
+
+    return render_template("postjob.html")
 
 
 @app.route("/")
