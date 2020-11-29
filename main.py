@@ -4,6 +4,8 @@ import bcrypt
 import configparser
 from pymongo import MongoClient
 import uuid
+from uuid import UUID
+from bson.binary import Binary, UUID_SUBTYPE, UUIDLegacy
 
 # config initialize
 config = configparser.ConfigParser()
@@ -141,11 +143,19 @@ def post_job():
         db_jobs.jobs.insert({"email": request.form['email'], "phoneNumber": request.form['phoneNumber'], "address": request.form['address'],
                         "city": request.form['city'], "postalCode": request.form['postalCode'], "jobTitle": request.form['jobTitle'], "category": request.form['category'],
                         "date": request.form['date'], "time": request.form['time'], "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
-                        "employerUid:":uid, "employeeUid":None})
+                        "employerUid":uid, "employeeUid":None})
 
         return render_template('home.html')
 
     return render_template("postjob.html")
+
+@app.route("/find_job",methods=['GET'])
+@login_required
+def find_job():
+    uid = current_user.get_id()
+    job_list=[]
+    job_list = list(db_jobs.jobs.find({"employerUid":{"$ne":uid}}))
+    return render_template('find_job.html',job_list=job_list)
 
 
 @app.route("/modify/<jobid>",methods=['GET','POST'])
