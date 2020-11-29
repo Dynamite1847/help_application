@@ -1,34 +1,32 @@
 {% extends "template.html" %}
 
-{% block title %} job list {% endblock %}
+{% block title %} Find a job {% endblock %}
 
 {% block main %}
 
   <div class="container">
     <div class="row">
-    <div class="col">
-      <h1><i class="fas fa-barcode"></i> Job list</h1>
-    </div>
+        <div class="col">
+            <h1> Job list</h1>
+        </div>
     </div>
 
-  {% macro easy_row(data, tag) -%}
-    {% for record in data %}
-    <div class="row">
-      {% for job in job_list %}
-      <div class="col">
-        <{{ tag }}> {{ job }} </{{ tag }}>
-      </div>
-      {% endfor %}
-    </div>
+
+    <div class="list-group">
+        {% for job in job_list %}
+            <a href="#" class="list-group-item  flex-column align-items-start ">
+                <div class="d-flex w-100 justify-content-between ">
+                    <h5 class="mb-1 text-dark">{{ job['jobTitle'] }}</h5>
+                    <p  class="text-dark">Salary: $ {{ job['salary'] }}</p>
+                </div>
+                <p class="mb-1 text-dark">{{ job['date'] }} {{ job['time'] }}</p>
+                    <small class="text-dark">{{ job['address'] }}</small>
+            </a>
+
     {% endfor %}
-  {%- endmacro %}
-
-  {% set col_names = (("job_id", "job_name", "job_description", "creator", "date"),) %}
-
-  {{ easy_row(col_names, "h2") }}
-
-  {{ easy_row(html_records, "p") }}
-
+    </div>
   </div>
 
 {% endblock %}
+
+//<!--<a href="{{ url_for('#', post_id=job.id) }}">-->

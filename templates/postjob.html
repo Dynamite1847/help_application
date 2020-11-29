@@ -11,7 +11,7 @@
         <form id="jobForm" class="needs-validation" method="post" novalidate>
             <div class="form-row">
                 <div class="col-md-3 mb-2">
-                    <label for="email1">Email</label>
+                    <label for="email">Email</label>
                     <input type="email" class="form-control" id="email" name="email" placeholder="abc@example.com"  required>
                     <div class="valid-feedback">
                         Please provide a valid Email.
@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="col-md-3 mb-2">
-                    <label for="validationCustom02">Phone Number</label>
+                    <label for="phoneNumber">Phone Number</label>
                     <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" placeholder="5140000000" required>
                     <div class="invalid-feedback">
                     Please provide a valid Phone Number
@@ -47,7 +47,7 @@
 
 
                 <div class="col-md-3 mb-3">
-                    <label for="validationCustom05">Postal Code</label>
+                    <label for="postalCode">Postal Code</label>
                     <input type="text" class="form-control" id="postalCode" name="postalCode" placeholder="Postal Code" required>
                     <div class="invalid-feedback">
                         Please provide a valid Postal Code.
@@ -57,21 +57,21 @@
 
             <div class="form-row">
                 <div class="col-md-3 mb-2">
-                    <label for="validationCustom03">Job Title</label>
-                    <input type="text" class="form-control" id="jobTitle" name="jobTitle" placeholder="jobtitle" required>
+                    <label for="jobTitle">Job Title</label>
+                    <input type="text" class="form-control" id="jobTitle" name="jobTitle" placeholder="Job title" required>
                     <div class="invalid-feedback">
                         Please provide a valid Job Title.
                     </div>
                 </div>
                 <div class="form-group">
-                    <label >Category</label>
-                    <select name="category" class="custom-select" required>
-                        <option value="">Open this select menu</option>
-                        <option value="1">Life</option>
-                        <option value="2">Graphic&Design</option>
-                        <option value="3">Digital Related</option>
-                        <option value="4">Writing&translate</option>
-                    </select>
+                    <label for="category" >Category</label>
+                        <select name="category" class="custom-select" id="category" required>
+                            <option value="">Open this select menu</option>
+                            <option value="1">Life</option>
+                            <option value="2">Graphic&Design</option>
+                            <option value="3">Digital Related</option>
+                            <option value="4">Writing&translate</option>
+                        </select>
                     <div class="invalid-feedback">
                          Please provide a valid Category.
                     </div>
@@ -81,7 +81,7 @@
             <div class="form-group row">
                 <div class="col-md-3 mb-2">
                     <label for="Date" >Date</label>
-                    <input class="form-control" type="date" id="example-date-input" name="date"required>
+                    <input class="form-control" type="date" id="Date" name="date" required>
                     <div class="invalid-feedback">
                         Please provide a valid Date.
                     </div>
@@ -89,8 +89,8 @@
 
 
                 <div class="col-md-3 mb-2">
-                    <label for="Time" >Time</label>
-                    <input class="form-control" type="time" id="example-time-input" name="time" required>
+                    <label for="time" >Time</label>
+                    <input class="form-control" type="time" id="time" name="time" required>
                     <div class="invalid-feedback">
                         Please provide a valid Time.
                     </div>
@@ -100,7 +100,7 @@
             <div class="form-group">
                 <div class="col-md-6">
                     <label for="jobDescription">Job Description</label>
-                    <textarea class="form-control" id="exampleFormControlTextarea1" name="jobDescription"rows="5" placeholder="Job Description" required ></textarea>
+                    <textarea class="form-control" id="jobDescription" name="jobDescription" rows="5" placeholder="Job Description" required ></textarea>
                     <div class="invalid-feedback">
                         Please provide a valid Job Description.
                     </div>
