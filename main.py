@@ -13,7 +13,11 @@ app = Flask(__name__)
 app.secret_key = config.get('flask', 'secret_key')  # set the secret key
 
 # define the default users account and passwords
-USERS=[]
+USERS = []
+
+client = MongoClient('mongodb://COEN6313:admin@35.183.26.186:27017/admin')
+db = client.users
+db_jobs = client.jobs
 
 # This object is used to hold the settings used for logging in and initiate it.
 login_manager = LoginManager()
@@ -52,7 +56,6 @@ class User(UserMixin):
 
 
 
-
 # This sets the callback for reloading a user from the session.
 # The function you set should take a user ID (a unicode) and return a user object,
 # or None if the user does not exist.
@@ -73,7 +76,7 @@ def request_loader(request):
             "uuid": id
         }
         user_entry = User.get(username)
-        if (user_entry is not None):
+        if user_entry is not None:
             user = User(user)
             return user
     return None
@@ -83,43 +86,42 @@ def request_loader(request):
 def login():
     if request.method == 'GET':
         return render_template("login.html")
-    username = request.form['username']
-    client = MongoClient('35.183.26.186', 27017)
-    db = client.users
-    log_user = db.users.find_one({"username": username})
-    if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
-            log_user['password']:
-        user = {
-            "name": username,
-            "uuid": log_user['uuid']
-        }
-        USERS.append(user)
-        user = User(user)
-        login_user(user)
-        return render_template('home.html')
-        # return redirect(url_for('from_start'))
     else:
-        flash('Invalid login, Please check your account and password!')
-        return render_template('login.html')
+        username = request.form['username']
+        log_user = db.users.find_one({"username": username})
+        if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == log_user['password']:
+            user = {
+                "name": username,
+                "uuid": log_user['uuid']
+            }
+            USERS.append(user)
+            user = User(user)
+            login_user(user)
+            return render_template('home.html')
+        else:
+            flash('Invalid login, Please check your account and password!')
+            return render_template('login.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        client = MongoClient('35.183.26.186', 27017)
-        db = client.users
         existing_user = db.users.find_one({'username': request.form['username']})
         if existing_user is None:
             hashpass = bcrypt.hashpw(request.form['password'].encode('utf-8'), bcrypt.gensalt())
             uid = uuid.uuid1()
             db.users.insert_one({'username': request.form['username'], 'password': hashpass, "uuid": uid})
-            user = User()
-            user.id = request.form['username']
+            user = {
+                "name": request.form['username'],
+                "uuid": uid
+            }
+            USERS.append(user)
+            user = User(user)
             login_user(user)
             return render_template('home.html')
-
-        flash('That username already exists! Please try another name')
-        return render_template('register.html')
+        else:
+            flash('That username already exists! Please try another name')
+            return render_template('register.html')
     else:
         return render_template('register.html')
 
@@ -131,14 +133,26 @@ def logout():
     return render_template('login.html')
 
 
-@app.route("/postjob",methods=['GET','POST'])
+@app.route("/postjob", methods=['GET', 'POST'])
 @login_required
 def post_job():
-    pass
+    uid = current_user.get_id()
+    if request.method == 'POST':
+        db_jobs.jobs.insert({"email": request.form['email'], "phoneNumber": request.form['phoneNumber'], "address": request.form['address'],
+                        "city": request.form['city'], "postalCode": request.form['postalCode'], "jobTitle": request.form['jobTitle'], "category": request.form['category'],
+                        "date": request.form['date'], "time": request.form['time'], "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
+                        "employerUid:":uid, "employeeUid":None})
 
+        return render_template('home.html')
 
     return render_template("postjob.html")
 
+
+@app.route("/modify/<jobid>",methods=['GET','POST'])
+@login_required
+def modify(jobid):
+    print
+    pass
 
 @app.route("/")
 def home():
