@@ -7,9 +7,11 @@ import uuid
 from uuid import UUID
 from bson.binary import Binary, UUID_SUBTYPE, UUIDLegacy
 
+
 # config initialize
 config = configparser.ConfigParser()
 config.read('config.ini')
+
 
 app = Flask(__name__)
 app.secret_key = config.get('flask', 'secret_key')  # set the secret key
@@ -149,13 +151,41 @@ def post_job():
 
     return render_template("postjob.html")
 
+
 @app.route("/find_job",methods=['GET'])
 @login_required
 def find_job():
     uid = current_user.get_id()
     job_list=[]
     job_list = list(db_jobs.jobs.find({"employerUid":{"$ne":uid}}))
+    #reference this page for the data transport
+    # html_records refer to the list get from mongodb and routing to find_job.html
+    #   {{ easy_row(html_records, "p") }}
+    # then the data is passing to the pages.
     return render_template('find_job.html',job_list=job_list)
+
+
+@app.route("/search", methods=['GET', 'POST'])
+@login_required
+def select_records():
+    if request.method == 'POST':
+        print(request.form)
+        job_list = list(db_jobs.jobs.find({'''use the condition you set for''' }))
+        return render_template("find_job.html", html_records=job_list)
+    else:
+        return render_template("search.html")
+
+
+@app.route("/find_job_detail/<string:uid>",methods=['GET','POST'])
+def get_job_detail(uid):
+    user_uid = current_user.get_id()
+    job_list = []
+    job_list = list(db_jobs.jobs.find({"employerUid": uid}))
+    # reference this page for the data transport
+    # html_records refer to the list get from mongodb and routing to find_job.html
+    #   {{ easy_row(html_records, "p") }}
+    # then the data is passing to the pages.
+    return render_template('find_job.html', job_list=job_list)
 
 
 @app.route("/modify/<jobid>",methods=['GET','POST'])
@@ -163,6 +193,7 @@ def find_job():
 def modify(jobid):
     print
     pass
+
 
 @app.route("/")
 def home():
