@@ -14,7 +14,7 @@
 
     <div class="list-group">
         {% for job in job_list %}
-            <a href="#" class="list-group-item  flex-column align-items-start ">
+            <a href="/find_job_detail/{{ job['_id'] }}" class="list-group-item  flex-column align-items-start ">
                 <div class="d-flex w-100 justify-content-between ">
                     <h5 class="mb-1 text-dark">{{ job['jobTitle'] }}</h5>
                     <p  class="text-dark">Salary: $ {{ job['salary'] }}</p>
@@ -29,4 +29,3 @@
 
 {% endblock %}
 
-//<!--<a href="{{ url_for('#', post_id=job.id) }}">-->
