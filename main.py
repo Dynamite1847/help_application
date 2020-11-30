@@ -152,6 +152,34 @@ def post_job():
 
     return render_template("postjob.html")
 
+#edit job
+@app.route("/edit_job/<string:jobid>", methods=['GET', 'POST'])
+@login_required
+def edit_job(jobid):
+    uid = current_user.get_id()
+    job_list = list(db_jobs.jobs.find_one({"_id": ObjectId(jobid)}))
+
+    if request.method == 'POST':
+        new_values = { "$set": {"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
+                             "address": request.form['address'],
+                             "city": request.form['city'], "postalCode": request.form['postalCode'],
+                             "jobTitle": request.form['jobTitle'], "category": request.form['category'],
+                             "date": request.form['date'], "time": request.form['time'],
+                             "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
+                             "employerUid": uid, "employeeUid": None} }
+        db_jobs.jobs.update_many({"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
+                             "address": request.form['address'],
+                             "city": request.form['city'], "postalCode": request.form['postalCode'],
+                             "jobTitle": request.form['jobTitle'], "category": request.form['category'],
+                             "date": request.form['date'], "time": request.form['time'],
+                             "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
+                             "employerUid": uid, "employeeUid": None}, new_values)
+
+        job_list = list(db_jobs.jobs.find({"employerUid": uid}))
+        return render_template('find_post.html', job_list=job_list)
+
+    return render_template("edit_job.html")
+
 
 @app.route("/find_job", methods=['GET'])
 @login_required

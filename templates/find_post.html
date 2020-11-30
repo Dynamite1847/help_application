@@ -20,6 +20,8 @@
                     </div>
                     <p class="mb-1 text-dark">{{ job['date'] }} {{ job['time'] }}</p>
                         <small class="text-dark">{{ job['address'] }}</small>
+                    <p><a href="/edit_job/{{job['_id']}}" class="btn btn-defualt pull-right">Edit</a></p>
+                    <p><a href="#" class="btn btn-danger">Delete</a></p>
                 </a>
 
             {% endfor %}
