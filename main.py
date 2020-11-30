@@ -1,17 +1,15 @@
-from flask import Flask, request, abort, render_template, flash, url_for, redirect,session
+from flask import Flask, request, abort, render_template, flash, url_for, redirect, session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import bcrypt
 import configparser
 from pymongo import MongoClient
 import uuid
-from uuid import UUID
-from bson.binary import Binary, UUID_SUBTYPE, UUIDLegacy
-
+from bson import ObjectId
+import functions
 
 # config initialize
 config = configparser.ConfigParser()
 config.read('config.ini')
-
 
 app = Flask(__name__)
 app.secret_key = config.get('flask', 'secret_key')  # set the secret key
@@ -59,7 +57,6 @@ class User(UserMixin):
         return None
 
 
-
 # This sets the callback for reloading a user from the session.
 # The function you set should take a user ID (a unicode) and return a user object,
 # or None if the user does not exist.
@@ -93,7 +90,8 @@ def login():
     else:
         username = request.form['username']
         log_user = db.users.find_one({"username": username})
-        if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == log_user['password']:
+        if log_user and bcrypt.hashpw(request.form['password'].encode('utf-8'), log_user['password']) == \
+                log_user['password']:
             user = {
                 "name": username,
                 "uuid": log_user['uuid']
@@ -142,27 +140,25 @@ def logout():
 def post_job():
     uid = current_user.get_id()
     if request.method == 'POST':
-        db_jobs.jobs.insert({"email": request.form['email'], "phoneNumber": request.form['phoneNumber'], "address": request.form['address'],
-                        "city": request.form['city'], "postalCode": request.form['postalCode'], "jobTitle": request.form['jobTitle'], "category": request.form['category'],
-                        "date": request.form['date'], "time": request.form['time'], "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
-                        "employerUid":uid, "employeeUid":None})
+        db_jobs.jobs.insert({"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
+                             "address": request.form['address'],
+                             "city": request.form['city'], "postalCode": request.form['postalCode'],
+                             "jobTitle": request.form['jobTitle'], "category": request.form['category'],
+                             "date": request.form['date'], "time": request.form['time'],
+                             "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
+                             "employerUid": uid, "employeeUid": None})
 
         return render_template('home.html')
 
     return render_template("postjob.html")
 
 
-@app.route("/find_job",methods=['GET'])
+@app.route("/find_job", methods=['GET'])
 @login_required
 def find_job():
     uid = current_user.get_id()
-    job_list=[]
-    job_list = list(db_jobs.jobs.find({"employerUid":{"$ne":uid}}))
-    #reference this page for the data transport
-    # html_records refer to the list get from mongodb and routing to find_job.html
-    #   {{ easy_row(html_records, "p") }}
-    # then the data is passing to the pages.
-    return render_template('find_job.html',job_list=job_list)
+    job_list = list(db_jobs.jobs.find({"$and": [{"employerUid": {"$ne": uid}}, {"employeeUid": None}]}))
+    return render_template('find_job.html', job_list=job_list)
 
 
 @app.route("/search", methods=['GET', 'POST'])
@@ -170,27 +166,33 @@ def find_job():
 def select_records():
     if request.method == 'POST':
         print(request.form)
-        job_list = list(db_jobs.jobs.find({'''use the condition you set for''' }))
+        job_list = list(db_jobs.jobs.find({'''use the condition you set for'''}))
         return render_template("find_job.html", html_records=job_list)
     else:
         return render_template("search.html")
 
 
-@app.route("/find_job_detail", methods=['GET','POST'])
+@app.route("/find_job_detail/<string:uid>", methods=['GET', 'POST'])
 @login_required
-def get_job_detail():
+def find_job_detail(uid):
     user_uid = current_user.get_id()
-    job_list = []
-    job_list = list(db_jobs.jobs.find({"employerUid": user_uid}))
-    # reference this page for the data transport
-    # html_records refer to the list get from mongodb and routing to find_job.html
-    #   {{ easy_row(html_records, "p") }}
-    # then the data is passing to the pages.
+    job_list = list(db_jobs.jobs.find({"_id": ObjectId(uid)}))
+    if request.method == 'POST':
+        functions.apply_for_job(user_uid, uid)
+        return render_template('home.html')
     return render_template('find_job_detail.html', job_list=job_list)
 
 
+@app.route("/find_post", methods=['GET','POST'])
+@login_required
+def get_post_detail():
+    user_uid = current_user.get_id()
+    job_list = []
+    job_list = list(db_jobs.jobs.find({"employerUid": user_uid}))
+    return render_template('find_post.html', job_list=job_list)
 
-@app.route("/modify/<jobid>",methods=['GET','POST'])
+
+@app.route("/modify/<jobid>", methods=['GET', 'POST'])
 @login_required
 def modify(jobid):
     print
