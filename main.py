@@ -176,16 +176,18 @@ def select_records():
         return render_template("search.html")
 
 
-@app.route("/find_job_detail/<string:uid>",methods=['GET','POST'])
-def get_job_detail(uid):
+@app.route("/find_job_detail", methods=['GET','POST'])
+@login_required
+def get_job_detail():
     user_uid = current_user.get_id()
     job_list = []
-    job_list = list(db_jobs.jobs.find({"employerUid": uid}))
+    job_list = list(db_jobs.jobs.find({"employerUid": user_uid}))
     # reference this page for the data transport
     # html_records refer to the list get from mongodb and routing to find_job.html
     #   {{ easy_row(html_records, "p") }}
     # then the data is passing to the pages.
-    return render_template('find_job.html', job_list=job_list)
+    return render_template('find_job_detail.html', job_list=job_list)
+
 
 
 @app.route("/modify/<jobid>",methods=['GET','POST'])
