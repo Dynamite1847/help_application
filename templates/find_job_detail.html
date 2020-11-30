@@ -3,3 +3,27 @@
 {% block title %} Job Detail {% endblock %}
 
 {% block main %}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1> My job list</h1>
+            </div>
+        </div>
+
+
+        <div class="list-group">
+            {% for job in job_list %}
+                <a href="#" class="list-group-item  flex-column align-items-start ">
+                    <div class="d-flex w-100 justify-content-between ">
+                        <h5 class="mb-1 text-dark">{{ job['jobTitle'] }}</h5>
+                        <p  class="text-dark">Salary: $ {{ job['salary'] }}</p>
+                    </div>
+                    <p class="mb-1 text-dark">{{ job['date'] }} {{ job['time'] }}</p>
+                        <small class="text-dark">{{ job['address'] }}</small>
+                </a>
+
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
