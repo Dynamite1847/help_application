@@ -1,3 +1,5 @@
+import smtplib
+
 from flask import Flask, request, render_template, flash, url_for, redirect
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import bcrypt
@@ -137,7 +139,7 @@ def logout():
     return render_template('login.html')
 
 
-@app.route("/postjob", methods=['GET', 'POST'])
+@app.route("/post_job", methods=['GET', 'POST'])
 @login_required
 def post_job():
     uid = current_user.get_id()
@@ -152,39 +154,56 @@ def post_job():
 
         return render_template('home.html')
 
-    return render_template("postjob.html")
+    return render_template("post_job.html")
 
 
 # edit job
-@app.route("/edit_job/<string:jobid>", methods=['GET', 'POST'])
+@app.route("/edit_post/<string:jobid>", methods=['GET', 'POST'])
 @login_required
 def edit_job(jobid):
     uid = current_user.get_id()
-    job_list = list(db_jobs.jobs.find_one({"_id": ObjectId(jobid)}))
-
-    if request.method == 'POST':
+    job_list = list(db_jobs.jobs.find({"_id": ObjectId(jobid)}))
+    if request.method == 'GET':
+        return render_template("edit_post.html", job_list=job_list)
+    elif request.method == 'POST':
+        for jobs in job_list:
+            email_address = jobs['employeeEmail']
+        try:
+            mail = send_email(app)
+            send_mail(email_address, 'Your future task has been cancelled due to user edit the profile! '
+                                     'Log in to check!', mail, 'Hey!You have a future task cancelled!')
+        except smtplib.SMTPException:
+            pass
+        return render_template('home.html')
         new_values = {"$set": {"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
                                "address": request.form['address'],
                                "city": request.form['city'], "postalCode": request.form['postalCode'],
                                "jobTitle": request.form['jobTitle'], "category": request.form['category'],
                                "date": request.form['date'], "time": request.form['time'],
                                "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
-                               "employerUid": uid, "employeeUid": None}}
+                               "employerUid": uid, "employeeUid": None, "employeeEmail": None}}
         db_jobs.jobs.update_one({"_id": ObjectId(jobid)}, new_values)
         job_list = list(db_jobs.jobs.find({"employerUid": uid}))
-        return render_template('find_post.html', job_list=job_list)
-
-    return render_template("edit_job.html")
+        return render_template('check_my_post.html', job_list=job_list)
+    return render_template("edit_post.html")
 
 
 # delete job
-@app.route('/delete_job/<string:_id>', methods=['POST'])
+@app.route('/delete_job/<string:_id>', methods=['GET'])
 @login_required
 def delete_job(_id):
     uid = current_user.get_id()
+    job_list = db_jobs.jobs.find({"_id": ObjectId(_id)})
+    for jobs in job_list:
+        email_address = jobs['employeeEmail']
+    try:
+        mail = send_email(app)
+        send_mail(email_address, 'Your future task has been cancelled due to delete! Log in to check!', mail,
+                  'Hey!You have a future task cancelled!')
+    except smtplib.SMTPException:
+        pass
     db_jobs.jobs.delete_one({"_id": ObjectId(_id)})
-    job_list = list(db_jobs.jobs.find({"employerUid": uid}))
-    return render_template('find_post.html', job_list=job_list)
+    return redirect(url_for('check_my_post'))
 
 
 @app.route("/find_job", methods=['GET', 'POST'])
@@ -217,25 +236,49 @@ def find_job():
         return render_template('find_job.html', job_list=job_list)
 
 
+@app.route("/find_job_category/<string:category>", methods=['GET'])
+@login_required
+def find_job_category(category):
+    uid = current_user.get_id()
+    job_list = list(db_jobs.jobs.find({"$and": [{"employerUid": {"$ne": uid}}, {"employeeUid": None},
+                                                {"category": category}]}))
+    if request.method == 'GET':
+        if job_list:
+            return render_template('find_job.html', job_list=job_list)
+        else:
+            flash('Oops, seems like there is no job available for you right now! Please check later!')
+            return render_template('find_job.html')
+
+
 @app.route("/find_job_detail/<string:uid>", methods=['GET', 'POST'])
 @login_required
 def find_job_detail(uid):
     user_uid = current_user.get_id()
     job_list = list(db_jobs.jobs.find({"_id": ObjectId(uid)}))
     if request.method == 'POST':
-        email_address = functions.apply_for_job(user_uid, uid)
-        mail = send_email(app)
-        send_mail(email_address, 'Your job has been taken! Log in to check!', mail)
+        employeeEmail = request.form['employeeEmail']
+        email_address = functions.apply_for_job(user_uid, uid, employeeEmail)
+        try:
+            mail = send_email(app)
+            send_mail(email_address, 'Your job has been taken! Log in to check!', mail,
+                      'Hey！Someone has taken your task!')
+        except smtplib.SMTPException:
+            pass
         return render_template('home.html')
     return render_template('find_job_detail.html', job_list=job_list)
 
 
-@app.route("/find_post", methods=['GET', 'POST'])
+@app.route("/check_my_post", methods=['GET'])
 @login_required
-def get_post_detail():
+def check_my_post():
     user_uid = current_user.get_id()
     job_list = list(db_jobs.jobs.find({"employerUid": user_uid}))
-    return render_template('find_post.html', job_list=job_list)
+    if job_list:
+        return render_template('check_my_post.html', job_list=job_list)
+    else:
+        flash("Oops, seems like you haven't posted anything! Please check after you post!")
+        return render_template('check_my_post.html')
+    return render_template('check_my_post.html', job_list=job_list)
 
 
 @app.route("/check_future_task", methods=['GET'])
@@ -257,17 +300,6 @@ def future_task_detail(uid):
     if request.method == 'POST':
         return redirect(url_for('find_future_task'))
     return render_template('future_task_detail.html', job_list=job_list)
-
-
-@app.route("/search", methods=['GET', 'POST'])
-@login_required
-def select_records():
-    if request.method == 'POST':
-        print(request.form)
-        job_list = list(db_jobs.jobs.find({'''use the condition you set for'''}))
-        return render_template("find_job.html", html_records=job_list)
-    else:
-        return render_template("search.html")
 
 
 @app.route("/")
