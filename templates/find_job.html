@@ -1,0 +1,87 @@
+{% extends "template.html" %}
+
+{% block title %} Find a job {% endblock %}
+
+{% block flash %}
+<div class = 'alert alert-warning'>
+  {% for message in messages %}
+    {{ message }}
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block main %}
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class = 'alert alert-warning'>
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <div class="row">
+        <div class="col">
+            <h1> Job list</h1>
+        </div>
+    </div>
+
+<div class="form-group">
+    <form id="needs-validation" method="post" class="form-inline">
+        <label class="my-1 mr-2" for="custom-select">Sort</label>
+        <select class="custom-select my-1 mr-sm-2" id="order_type" name="order_type" required>
+            <option selected>Sort</option>
+            <option value="distance">Sort by Distance</option>
+            <option value="salary">Sort by Salary</option>
+        </select>
+        <div class="invalid-feedback">Example invalid custom select feedback</div>
+
+        <div class="col-md-8">
+                    <input type="text"  class="form-control" id="address" name="address" value="address" placeholder="Please input an Address" required>
+                </div>
+        <button class="btn btn-primary btn-dirty-purple" type="submit">Submit</button>
+    </form>
+
+</div>
+
+    <div class="list-group">
+        {% for job in job_list %}
+            <a href="/find_job_detail/{{ job['_id'] }}" class="list-group-item  flex-column align-items-start ">
+                <div class="d-flex w-100 justify-content-between ">
+                    <h5 class="mb-1 text-dark">{{ job['jobTitle'] }}</h5>
+                    <p  class="text-dark">Salary: $ {{ job['salary'] }}</p>
+                </div>
+                <p class="mb-1 text-dark">{{ job['date'] }} {{ job['time'] }}</p>
+                    <small class="text-dark">{{ job['address'] }}</small>
+            </a>
+
+    {% endfor %}
+    </div>
+  </div>
+
+     <script>
+document.getElementById("address").style.display = "None"
+var ddl = document.getElementById("order_type");
+ddl.onchange=newSelection;
+function newSelection()
+{
+    var ddl = document.getElementById("order_type");
+    var selectedValue = ddl.options[ddl.selectedIndex].value;
+
+
+    if (selectedValue == "distance")
+    {   document.getElementById("address").style.display = "inline";
+    }
+    else
+    {
+       document.getElementById("address").style.display = "none";
+    }
+
+
+}
+</script>
+
+{% endblock %}
+

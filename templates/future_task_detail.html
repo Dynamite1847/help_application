@@ -1,0 +1,91 @@
+{% extends "template.html" %}
+
+{% block title %} Future task detail {% endblock %}
+
+{% block main %}
+{% for job in job_list %}
+<div class="container" style="margin: 4em auto">
+    <div class="col-md-12">
+        <form id="jobForm" class="needs-validation" method="post" novalidate>
+            <div class="form-row">
+                <div class="col-md-3 mb-2">
+                    <label for="email">Email</label>
+                    <input type="email"  readonly class="form-control" id="email" name="email"  value="{{ job['email'] }}">
+                </div>
+
+                <div class="col-md-3 mb-2">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="tel" readonly class="form-control" id="phoneNumber" name="phoneNumber" value="{{ job['phoneNumber'] }}" >
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-md-6">
+                    <label for="address">Address</label>
+                    <input type="text" readonly class="form-control" id="address" name="address" value="{{ job['address'] }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-3 mb-2">
+                    <label for="city">City</label>
+                    <input type="text" readonly class="form-control" id="city" name="city" value="{{ job['city'] }}">
+                </div>
+
+
+                <div class="col-md-3 mb-2">
+                    <label for="postalCode">Postal Code</label>
+                    <input type="text" readonly class="form-control" id="postalCode" name="postalCode" value="{{ job['postalCode'] }}">
+                 </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-3 mb-2">
+                    <label for="jobTitle">Job Title</label>
+                    <input type="text" readonly class="form-control" id="jobTitle" name="jobTitle" value="{{ job['jobTitle'] }}" >
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-3 mb-2">
+                    <label for="Date" >Date</label>
+                    <input readonly class="form-control" type="date" id="Date" name="date" value="{{ job['date'] }}">
+                    <div class="invalid-feedback">
+                        Please provide a valid Date.
+                    </div>
+                </div>
+
+
+                <div class="col-md-3 mb-2">
+                    <label for="time" >Time</label>
+                    <input readonly class="form-control" type="time" id="time" name="time" value="{{ job['time'] }}" >
+                    <div class="invalid-feedback">
+                        Please provide a valid Time.
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-6 mb-2">
+                    <label for="jobDescription">Job Description</label>
+                    <textarea readonly class="form-control" id="jobDescription" name="jobDescription" rows="5"  >{{ job['jobDescription']}}</textarea>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-auto">
+                    <label for="salary">Salary</label>
+                    <div class="input-group mb-2">
+                        <div class="input-group-prepend">
+                        <div class="input-group-text">$</div>
+                        </div>
+                        <input type="text" readonly class="form-control" id="salary" name="salary" value="{{ job['salary'] }}" >
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-dirty-purple" type="submit">Return to my future task list</button>
+        </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+
