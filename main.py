@@ -167,19 +167,21 @@ def edit_job(jobid):
                              "date": request.form['date'], "time": request.form['time'],
                              "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
                              "employerUid": uid, "employeeUid": None} }
-        db_jobs.jobs.update_many({"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
-                             "address": request.form['address'],
-                             "city": request.form['city'], "postalCode": request.form['postalCode'],
-                             "jobTitle": request.form['jobTitle'], "category": request.form['category'],
-                             "date": request.form['date'], "time": request.form['time'],
-                             "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
-                             "employerUid": uid, "employeeUid": None}, new_values)
+        db_jobs.jobs.update_one({"_id": ObjectId(jobid)}, new_values)
 
         job_list = list(db_jobs.jobs.find({"employerUid": uid}))
         return render_template('find_post.html', job_list=job_list)
 
     return render_template("edit_job.html")
 
+#delete job
+@app.route('/delete_job/<string:_id>', methods=['POST'])
+@login_required
+def delete_job(_id):
+    uid = current_user.get_id()
+    db_jobs.jobs.delete_one({"_id": ObjectId(_id)})
+    job_list = list(db_jobs.jobs.find({"employerUid": uid}))
+    return render_template('find_post.html', job_list=job_list)
 
 @app.route("/find_job", methods=['GET'])
 @login_required
