@@ -1,3 +1,4 @@
+import pprint
 import smtplib
 
 from flask import Flask, request, render_template, flash, url_for, redirect
@@ -150,7 +151,7 @@ def post_job():
                              "jobTitle": request.form['jobTitle'], "category": request.form['category'],
                              "date": request.form['date'], "time": request.form['time'],
                              "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
-                             "employerUid": uid, "employeeUid": None})
+                             "employerUid": uid, "employeeUid": None, "employeeEmail": None, "distance": "unknown"})
 
         return render_template('home.html')
 
@@ -168,13 +169,15 @@ def edit_job(jobid):
     elif request.method == 'POST':
         for jobs in job_list:
             email_address = jobs['employeeEmail']
-        try:
-            mail = send_email(app)
-            send_mail(email_address, 'Your future task has been cancelled due to user edit the profile! '
-                                     'Log in to check!', mail, 'Hey!You have a future task cancelled!')
-        except smtplib.SMTPException:
-            pass
-        return render_template('home.html')
+            if email_address is None:
+                pass
+            else:
+                try:
+                    mail = send_email(app)
+                    send_mail(email_address, 'Your future task has been cancelled due to user edit the profile! '
+                                             'Log in to check!', mail, 'Hey!You have a future task cancelled!')
+                except smtplib.SMTPException:
+                    pass
         new_values = {"$set": {"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
                                "address": request.form['address'],
                                "city": request.form['city'], "postalCode": request.form['postalCode'],
@@ -192,16 +195,18 @@ def edit_job(jobid):
 @app.route('/delete_job/<string:_id>', methods=['GET'])
 @login_required
 def delete_job(_id):
-    uid = current_user.get_id()
     job_list = db_jobs.jobs.find({"_id": ObjectId(_id)})
     for jobs in job_list:
         email_address = jobs['employeeEmail']
-    try:
-        mail = send_email(app)
-        send_mail(email_address, 'Your future task has been cancelled due to delete! Log in to check!', mail,
-                  'Hey!You have a future task cancelled!')
-    except smtplib.SMTPException:
-        pass
+        if email_address is None:
+            pass
+        else:
+            try:
+                mail = send_email(app)
+                send_mail(email_address, 'Your future task has been cancelled due to delete! Log in to check!', mail,
+                          'Hey!You have a future task cancelled!')
+            except smtplib.SMTPException:
+                pass
     db_jobs.jobs.delete_one({"_id": ObjectId(_id)})
     return redirect(url_for('check_my_post'))
 
@@ -222,7 +227,7 @@ def find_job():
         if request.form['order_type'] == 'distance':
             if job_list:
                 for jobs in job_list:
-                    jobs['distance'] = get_distance(jobs['address'], request.form['address'])
+                    jobs['distance'] = float(get_distance(jobs['address'], request.form['address'])/1000)
                 job_list = sorted(job_list, key=lambda x: x['distance'])
             else:
                 flash("Oops, Can't sort blank!")
@@ -236,7 +241,7 @@ def find_job():
         return render_template('find_job.html', job_list=job_list)
 
 
-@app.route("/find_job_category/<string:category>", methods=['GET'])
+@app.route("/find_job_category/<string:category>", methods=['GET', 'POST'])
 @login_required
 def find_job_category(category):
     uid = current_user.get_id()
@@ -248,6 +253,23 @@ def find_job_category(category):
         else:
             flash('Oops, seems like there is no job available for you right now! Please check later!')
             return render_template('find_job.html')
+    elif request.method == 'POST':
+        if request.form['order_type'] == 'distance':
+            if job_list:
+                for jobs in job_list:
+                    jobs['distance'] = float(get_distance(jobs['address'], request.form['address']) / 1000)
+                job_list = sorted(job_list, key=lambda x: x['distance'])
+                pprint.pprint(job_list)
+            else:
+                flash("Oops, Can't sort blank!")
+                return render_template('find_job.html')
+        elif request.form['order_type'] == 'salary':
+            if job_list:
+                job_list = sorted(job_list, key=lambda x: float(x['salary']), reverse=True)
+            else:
+                flash("Oops, Can't sort blank!")
+                return render_template('find_job.html')
+        return render_template('find_job.html', job_list=job_list)
 
 
 @app.route("/find_job_detail/<string:uid>", methods=['GET', 'POST'])
@@ -277,8 +299,7 @@ def check_my_post():
         return render_template('check_my_post.html', job_list=job_list)
     else:
         flash("Oops, seems like you haven't posted anything! Please check after you post!")
-        return render_template('check_my_post.html')
-    return render_template('check_my_post.html', job_list=job_list)
+        return render_template('check_my_post.html', job_list=job_list)
 
 
 @app.route("/check_future_task", methods=['GET'])
@@ -308,4 +329,4 @@ def home():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)
