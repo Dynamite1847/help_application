@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, render_template, flash, url_for, redirect, session
+from flask import Flask, request, render_template, flash, url_for, redirect
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import bcrypt
 import configparser
@@ -6,6 +6,8 @@ from pymongo import MongoClient
 import uuid
 from bson import ObjectId
 import functions
+from gmap_distance_api import get_distance
+from mail import send_mail, send_email
 
 # config initialize
 config = configparser.ConfigParser()
@@ -152,7 +154,8 @@ def post_job():
 
     return render_template("postjob.html")
 
-#edit job
+
+# edit job
 @app.route("/edit_job/<string:jobid>", methods=['GET', 'POST'])
 @login_required
 def edit_job(jobid):
@@ -160,21 +163,21 @@ def edit_job(jobid):
     job_list = list(db_jobs.jobs.find_one({"_id": ObjectId(jobid)}))
 
     if request.method == 'POST':
-        new_values = { "$set": {"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
-                             "address": request.form['address'],
-                             "city": request.form['city'], "postalCode": request.form['postalCode'],
-                             "jobTitle": request.form['jobTitle'], "category": request.form['category'],
-                             "date": request.form['date'], "time": request.form['time'],
-                             "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
-                             "employerUid": uid, "employeeUid": None} }
+        new_values = {"$set": {"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
+                               "address": request.form['address'],
+                               "city": request.form['city'], "postalCode": request.form['postalCode'],
+                               "jobTitle": request.form['jobTitle'], "category": request.form['category'],
+                               "date": request.form['date'], "time": request.form['time'],
+                               "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
+                               "employerUid": uid, "employeeUid": None}}
         db_jobs.jobs.update_one({"_id": ObjectId(jobid)}, new_values)
-
         job_list = list(db_jobs.jobs.find({"employerUid": uid}))
         return render_template('find_post.html', job_list=job_list)
 
     return render_template("edit_job.html")
 
-#delete job
+
+# delete job
 @app.route('/delete_job/<string:_id>', methods=['POST'])
 @login_required
 def delete_job(_id):
@@ -183,12 +186,77 @@ def delete_job(_id):
     job_list = list(db_jobs.jobs.find({"employerUid": uid}))
     return render_template('find_post.html', job_list=job_list)
 
-@app.route("/find_job", methods=['GET'])
+
+@app.route("/find_job", methods=['GET', 'POST'])
 @login_required
 def find_job():
     uid = current_user.get_id()
     job_list = list(db_jobs.jobs.find({"$and": [{"employerUid": {"$ne": uid}}, {"employeeUid": None}]}))
-    return render_template('find_job.html', job_list=job_list)
+    if request.method == 'GET':
+        if job_list:
+            return render_template('find_job.html', job_list=job_list)
+        else:
+            flash('Oops, seems like there is no job available for you right now! Please check later!')
+            return render_template('find_job.html')
+
+    elif request.method == 'POST':
+        if request.form['order_type'] == 'distance':
+            if job_list:
+                for jobs in job_list:
+                    jobs['distance'] = get_distance(jobs['address'], request.form['address'])
+                job_list = sorted(job_list, key=lambda x: x['distance'])
+            else:
+                flash("Oops, Can't sort blank!")
+                return render_template('find_job.html')
+        elif request.form['order_type'] == 'salary':
+            if job_list:
+                job_list = sorted(job_list, key=lambda x: float(x['salary']), reverse=True)
+            else:
+                flash("Oops, Can't sort blank!")
+                return render_template('find_job.html')
+        return render_template('find_job.html', job_list=job_list)
+
+
+@app.route("/find_job_detail/<string:uid>", methods=['GET', 'POST'])
+@login_required
+def find_job_detail(uid):
+    user_uid = current_user.get_id()
+    job_list = list(db_jobs.jobs.find({"_id": ObjectId(uid)}))
+    if request.method == 'POST':
+        email_address = functions.apply_for_job(user_uid, uid)
+        mail = send_email(app)
+        send_mail(email_address, 'Your job has been taken! Log in to check!', mail)
+        return render_template('home.html')
+    return render_template('find_job_detail.html', job_list=job_list)
+
+
+@app.route("/find_post", methods=['GET', 'POST'])
+@login_required
+def get_post_detail():
+    user_uid = current_user.get_id()
+    job_list = list(db_jobs.jobs.find({"employerUid": user_uid}))
+    return render_template('find_post.html', job_list=job_list)
+
+
+@app.route("/check_future_task", methods=['GET'])
+@login_required
+def find_future_task():
+    uid = current_user.get_id()
+    job_list = list(db_jobs.jobs.find({"employeeUid": uid}))
+    if job_list:
+        return render_template('check_future_task.html', job_list=job_list)
+    else:
+        flash("Oops, seems like you haven't take any jobs right now! Please check later!")
+        return render_template('find_job.html')
+
+
+@app.route("/future_task_detail/<string:uid>", methods=['GET', 'POST'])
+@login_required
+def future_task_detail(uid):
+    job_list = list(db_jobs.jobs.find({"_id": ObjectId(uid)}))
+    if request.method == 'POST':
+        return redirect(url_for('find_future_task'))
+    return render_template('future_task_detail.html', job_list=job_list)
 
 
 @app.route("/search", methods=['GET', 'POST'])
@@ -200,33 +268,6 @@ def select_records():
         return render_template("find_job.html", html_records=job_list)
     else:
         return render_template("search.html")
-
-
-@app.route("/find_job_detail/<string:uid>", methods=['GET', 'POST'])
-@login_required
-def find_job_detail(uid):
-    user_uid = current_user.get_id()
-    job_list = list(db_jobs.jobs.find({"_id": ObjectId(uid)}))
-    if request.method == 'POST':
-        functions.apply_for_job(user_uid, uid)
-        return render_template('home.html')
-    return render_template('find_job_detail.html', job_list=job_list)
-
-
-@app.route("/find_post", methods=['GET','POST'])
-@login_required
-def get_post_detail():
-    user_uid = current_user.get_id()
-    job_list = []
-    job_list = list(db_jobs.jobs.find({"employerUid": user_uid}))
-    return render_template('find_post.html', job_list=job_list)
-
-
-@app.route("/modify/<jobid>", methods=['GET', 'POST'])
-@login_required
-def modify(jobid):
-    print
-    pass
 
 
 @app.route("/")

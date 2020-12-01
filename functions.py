@@ -14,5 +14,7 @@ def delete(self, job_id):
 
 def apply_for_job(user_uid, job_id):
     db_jobs.jobs.update_one({"_id": ObjectId(job_id)}, {"$set": {'employeeUid': user_uid}})
+    job_list=list(db_jobs.jobs.find({"_id": ObjectId(job_id)}))
+    return job_list[0]['email']
 
 
