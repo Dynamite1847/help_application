@@ -22,17 +22,10 @@ def send_email(app):
     return mail
 
 
-def send_mail(to, body, mail):
-    message = Message('Congratulations！Someone has taken your task!', recipients=[to], body=body)
+def send_mail(to, body, mail,title):
+    message = Message(title, recipients=[to], body=body)
     mail.send(message)
 
-@app.route("/")
-def test_mail():
-    mail = send_email(app)
-    send_mail('yudong1864@gmail.com', '有人申请了你的任务，请速去查看', mail)
-    print("success")
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0')
 
 
