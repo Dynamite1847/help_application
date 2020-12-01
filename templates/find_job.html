@@ -1,6 +1,6 @@
 {% extends "template.html" %}
 
-{% block title %} Find a job {% endblock %}
+{% block title %} Find a Task {% endblock %}
 
 {% block flash %}
 <div class = 'alert alert-warning'>
@@ -24,7 +24,7 @@
   <div class="container">
     <div class="row">
         <div class="col">
-            <h1> Job list</h1>
+            <h1> Task List</h1>
         </div>
     </div>
 
@@ -36,7 +36,6 @@
             <option value="distance">Sort by Distance</option>
             <option value="salary">Sort by Salary</option>
         </select>
-        <div class="invalid-feedback">Example invalid custom select feedback</div>
 
         <div class="col-md-8">
                     <input type="text"  class="form-control" id="address" name="address" value="address" placeholder="Please input an Address" required>
@@ -55,9 +54,10 @@
                 </div>
                 <p class="mb-1 text-dark">{{ job['date'] }} {{ job['time'] }}</p>
                     <small class="text-dark">{{ job['address'] }}</small>
+            <div id="hide" style="display:inline"><small class="text-dark">{{ job['distance']}} km</small></div>
             </a>
 
-    {% endfor %}
+        {% endfor %}
     </div>
   </div>
 
@@ -78,10 +78,11 @@ function newSelection()
     {
        document.getElementById("address").style.display = "none";
     }
-
-
 }
 </script>
+
+
+
 
 {% endblock %}
 

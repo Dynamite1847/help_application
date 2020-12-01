@@ -3,8 +3,15 @@
 {% block title %} Future task detail {% endblock %}
 
 {% block main %}
-{% for job in job_list %}
+
+
 <div class="container" style="margin: 4em auto">
+    <div class="row">
+        <div class="col">
+            <h1> Future Task Detail</h1>
+        </div>
+    </div>
+    {% for job in job_list %}
     <div class="col-md-12">
         <form id="jobForm" class="needs-validation" method="post" novalidate>
             <div class="form-row">
@@ -86,6 +93,7 @@
         </form>
   </div>
 </div>
+
 {% endfor %}
 {% endblock %}
 
