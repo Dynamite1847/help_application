@@ -178,6 +178,8 @@ def edit_job(jobid):
                                              'Log in to check!', mail, 'Hey!You have a future task cancelled!')
                 except smtplib.SMTPException:
                     pass
+                else:
+                    pass
         new_values = {"$set": {"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
                                "address": request.form['address'],
                                "city": request.form['city'], "postalCode": request.form['postalCode'],
@@ -206,6 +208,8 @@ def delete_job(_id):
                 send_mail(email_address, 'Your future task has been cancelled due to delete! Log in to check!', mail,
                           'Hey!You have a future task cancelled!')
             except smtplib.SMTPException:
+                pass
+            else:
                 pass
     db_jobs.jobs.delete_one({"_id": ObjectId(_id)})
     return redirect(url_for('check_my_post'))
@@ -285,6 +289,8 @@ def find_job_detail(uid):
             send_mail(email_address, 'Your job has been taken! Log in to check!', mail,
                       'Hey！Someone has taken your task!')
         except smtplib.SMTPException:
+            pass
+        else:
             pass
         return render_template('home.html')
     return render_template('find_job_detail.html', job_list=job_list)
