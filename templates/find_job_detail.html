@@ -1,13 +1,13 @@
 {% extends "template.html" %}
 
-{% block title %} Job Detail {% endblock %}
+{% block title %} Task Detail {% endblock %}
 
 {% block main %}
 {% for job in job_list %}
 <div class="container" style="margin: 4em auto">
     <div class="col-md-12">
         <form id="jobForm" class="needs-validation" method="post" novalidate>
-
+            <h1>Task Detail</h1>
             <div class="form-row">
                 <div class="col-md-6">
                     <label for="address">Address</label>
