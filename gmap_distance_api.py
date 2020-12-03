@@ -8,4 +8,9 @@ def get_distance(address_origin, address_destination):
     base = 'https://maps.googleapis.com/maps/api/distancematrix/json'
     response = requests.get(base, parameters)
     answer = response.json()
-    return answer['rows'][0]['elements'][0]['distance']['value']
+    result = 0
+    try:
+        result = answer['rows'][0]['elements'][0]['distance']['value']
+    except KeyError:
+        result = 0
+    return result
