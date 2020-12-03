@@ -1,7 +1,7 @@
 import pprint
 import smtplib
 
-from flask import Flask, request, render_template, flash, url_for, redirect
+from flask import Flask, request, render_template, flash, url_for, redirect, jsonify, make_response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import bcrypt
 import configparser
@@ -11,6 +11,9 @@ from bson import ObjectId
 import functions
 from gmap_distance_api import get_distance
 from mail import send_mail, send_email
+import jwt
+import datetime
+
 
 # config initialize
 config = configparser.ConfigParser()
@@ -332,6 +335,124 @@ def future_task_detail(uid):
 @app.route("/")
 def home():
     return render_template("home.html")
+
+#Job API routes
+@app.route("/api/jobs", methods=['GET'])
+def get_all_jobs():
+    jobs = db_jobs.jobs
+    output = []
+
+    #Get all users
+    for query in jobs.find():
+        output.append({"email": query['email'], "phoneNumber": query['phoneNumber'],
+                               "address": query['address'],
+                               "city": query['city'], "postalCode": query['postalCode'],
+                               "jobTitle": query['jobTitle'], "category": query['category'],
+                               "date": query['date'], "time": query['time'],
+                               "jobDescription": query['jobDescription'], "salary": query['salary'],
+                               "employerUid": None, "employerUid": query['employerUid'], "employeeEmail": None})
+
+    return jsonify({'result' : output})
+
+@app.route("/api/jobs/<string:city>", methods=['GET'])
+def get_one_job(city):
+    job = db_jobs.jobs
+
+    query = job.find_one({'city' : city})
+   
+    output = {"email": query['email'], "phoneNumber": query['phoneNumber'],
+                               "address": query['address'],
+                               "city": query['city'], "postalCode": query['postalCode'],
+                               "jobTitle": query['jobTitle'], "category": query['category'],
+                               "date": query['date'], "time": query['time'],
+                               "jobDescription": query['jobDescription'], "salary": query['salary'],
+                               "employerUid": None, "employeeUid": None, "employeeEmail": None}
+
+    return jsonify({'result' : output})
+
+
+@app.route('/api/jobs', methods=['POST'])
+def create_job():
+    data = request.get_json(force=True)
+
+    new_job = db.users.insert_one({"email": request.form['email'], "phoneNumber": request.form['phoneNumber'],
+                             "address": request.form['address'],
+                             "city": request.form['city'], "postalCode": request.form['postalCode'],
+                             "jobTitle": request.form['jobTitle'], "category": request.form['category'],
+                             "date": request.form['date'], "time": request.form['time'],
+                             "jobDescription": request.form['jobDescription'], "salary": request.form['salary'],
+                             "employerUid": uid, "employeeUid": None, "employeeEmail": None, "distance": "unknown"})
+
+    return jsonify({"message": "Job created"})
+
+
+    
+#Users api routes
+@app.route('/user', methods=['GET'])
+def get_all_users():
+    users = db.users.find()
+
+    output = []
+    
+    for user in users:
+        #user_data = {}
+        #user_data['uuid'] = user.uuid
+        #user_data['username'] = user.username
+        #user_data['password'] = user.passwords
+        output.append({'username': user['username'], 'password': user['password'].decode('utf-8'), 'uuid': user['uuid']})
+
+    return jsonify({'users': output})
+
+@app.route('/user/<uuid>', methods=['GET'])
+def get_one_user(uuid):
+    user = db.users.find_one({"uuid": 'uuid'})
+    if not user:
+        return jsonify({"message" : "user not found!"})
+
+    output = []
+    output.append({'username': user['username'], 'password': user['password'].decode('utf-8'), 'uuid': user['uuid']})
+
+    return jsonify({'users': output})
+    #return jsonify({"user": user_data})
+
+@app.route('/user', methods=['POST'])
+def create_user():
+    data = request.get_json(force=True)
+    hashpass = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+    db.users.insert_one({"username" : data['username'], "password" : hashpass, "uuid" : uuid.uuid1()})
+
+    return jsonify({"Message": "New user created"})
+
+
+@app.route('/user/<user_id>', methods=['PUT'])
+def promote_user():
+    return ''
+
+@app.route('/user/<uuid>', methods=['DELETE'])
+def delete_user(uuid):
+    user = db.users.find_one({"uuid": {"$eq": uuid}})
+    if not user:
+        return jsonify({"message" : "user not found!"})
+    user.delete_one({"uuid": uuid.decode('utf-8')})
+    return jsonify({"message": "user has been deleted"})
+
+@app.route('/loginapi')
+def login_api():
+    auth = request.authorization
+
+    if not auth or not auth.username or not auth.password:
+        return make_reponse('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    user = db.users.find_one({'username': auth.username})
+
+    if not User:
+        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    if bcrypt.check_password_hash(user.password, auth.password):
+        token = jwt.encode({'uuid':user.uuid, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+
+        return jsonify({'token' : token.decode('utf-8')})
+    return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
 
 if __name__ == "__main__":
