@@ -282,17 +282,20 @@ def find_job_detail(uid):
     user_uid = current_user.get_id()
     job_list = list(db_jobs.jobs.find({"_id": ObjectId(uid)}))
     if request.method == 'POST':
-        employeeEmail = request.form['employeeEmail']
-        email_address = functions.apply_for_job(user_uid, uid, employeeEmail)
-        try:
-            mail = send_email(app)
-            send_mail(email_address, 'Your job has been taken! Log in to check!', mail,
+        if request.form['employeeEmail']:
+            employeeEmail = request.form['employeeEmail']
+            email_address = functions.apply_for_job(user_uid, uid, employeeEmail)
+            try:
+                mail = send_email(app)
+                send_mail(email_address, 'Your job has been taken! Log in to check!', mail,
                       'Hey！Someone has taken your task!')
-        except smtplib.SMTPException:
-            pass
+            except smtplib.SMTPException:
+                pass
+            else:
+             pass
+            return render_template('future_task_detail.html',job_list=job_list)
         else:
-            pass
-        return render_template('home.html')
+            return render_template('find_future_task.html')
     return render_template('find_job_detail.html', job_list=job_list)
 
 
@@ -317,7 +320,7 @@ def find_future_task():
         return render_template('check_future_task.html', job_list=job_list)
     else:
         flash("Oops, seems like you haven't take any jobs right now! Please check later!")
-        return render_template('find_job.html')
+        return render_template('find_future_task.html')
 
 
 @app.route("/future_task_detail/<string:uid>", methods=['GET', 'POST'])
