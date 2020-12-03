@@ -295,7 +295,7 @@ def find_job_detail(uid):
              pass
             return render_template('future_task_detail.html',job_list=job_list)
         else:
-            return render_template('find_future_task.html')
+            return render_template('check_future_task.html')
     return render_template('find_job_detail.html', job_list=job_list)
 
 
@@ -313,14 +313,14 @@ def check_my_post():
 
 @app.route("/check_future_task", methods=['GET'])
 @login_required
-def find_future_task():
+def check_future_task():
     uid = current_user.get_id()
     job_list = list(db_jobs.jobs.find({"employeeUid": uid}))
     if job_list:
         return render_template('check_future_task.html', job_list=job_list)
     else:
         flash("Oops, seems like you haven't take any jobs right now! Please check later!")
-        return render_template('find_future_task.html')
+        return render_template('check_future_task.html')
 
 
 @app.route("/future_task_detail/<string:uid>", methods=['GET', 'POST'])
@@ -328,7 +328,7 @@ def find_future_task():
 def future_task_detail(uid):
     job_list = list(db_jobs.jobs.find({"_id": ObjectId(uid)}))
     if request.method == 'POST':
-        return redirect(url_for('find_future_task'))
+        return redirect(url_for('check_future_task'))
     return render_template('future_task_detail.html', job_list=job_list)
 
 
