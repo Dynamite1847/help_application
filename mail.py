@@ -8,7 +8,7 @@ app = Flask(__name__)
 def send_email(app):
     MAIL_SERVER = 'smtp.163.com'
     MAIL_USERNAME = 'help_application@163.com'
-    MAIL_PASSWORD = 'STHZAMLLAFSCKGNA'
+    MAIL_PASSWORD = ''
     app.config.update(
         SECRET_KEY="SECRET KEY",
         MAIL_SERVER=MAIL_SERVER,
